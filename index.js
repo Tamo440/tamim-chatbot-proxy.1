@@ -1,31 +1,33 @@
-
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const { Configuration, OpenAIApi } = require('openai');
+const OpenAI = require('openai');
 
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
+// OpenAI initialisieren mit sicherem Key über Umgebungsvariable
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
 });
-const openai = new OpenAIApi(configuration);
 
 app.post('/chat', async (req, res) => {
   try {
     const { messages } = req.body;
-    const completion = await openai.createChatCompletion({
+
+    const chatCompletion = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
       messages: messages,
     });
-    res.json(completion.data);
+
+    res.json(chatCompletion);
   } catch (error) {
-    res.status(500).send(error.message || 'Fehler bei OpenAI');
+    console.error('Fehler bei OpenAI:', error.message);
+    res.status(500).send('Fehler beim Verarbeiten der Anfrage');
   }
 });
 
 app.listen(process.env.PORT || 3000, () => {
-  console.log('Server läuft auf Port', process.env.PORT || 3000);
+  console.log('Proxy läuft auf Port', process.env.PORT || 3000);
 });
